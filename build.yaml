@@ -11,7 +11,7 @@ resources:
 # set environment variables with azure pipeline variable group called skillstorm with a clientsecret as one of the secrets i want to set as an env variable in my build agent
 
 variables:
-  - group: skillstorm
+  - group: devops
 
 stages:
 
