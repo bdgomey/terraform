@@ -1,0 +1,73 @@
+# run terrform on azure pipeline
+
+resources:
+  repositories:
+    - repository: self
+      trigger: 
+        branches:
+          include:
+            - main
+
+# set environment variables with azure pipeline variable group called skillstorm with a clientsecret as one of the secrets i want to set as an env variable in my build agent
+
+variables:
+  - group: skillstorm
+
+stages:
+
+  - stage: build
+    displayName: build
+    jobs:
+      - job: build
+        displayName: build
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: 'latest'
+          - task: TerraformTaskV1@0
+            env:
+              ARM_CLIENT_ID: $(clientid)
+              ARM_CLIENT_SECRET: $(clientsecret)
+              ARM_SUBSCRIPTION_ID: $(subscriptionid)
+              ARM_TENANT_ID: $(tenantid)
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              backendServiceArm: 'skillstorm'
+              backendAzureRmResourceGroupName: 'terraform'
+              backendAzureRmStorageAccountName: 'terraform'
+              backendAzureRmContainerName: 'terraform'
+              backendAzureRmKey: 'terraform.tfstate'
+          - task: TerraformTaskV1@0
+            env:
+              ARM_CLIENT_ID: $(clientid)
+              ARM_CLIENT_SECRET: $(clientsecret)
+              ARM_SUBSCRIPTION_ID: $(subscriptionid)
+              ARM_TENANT_ID: $(tenantid)
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              environmentServiceNameAzureRM: 'skillstorm'
+              commandOptions: '-var-file=variables.tfvars'
+          - task: TerraformTaskV1@0
+            env:
+              ARM_CLIENT_ID: $(clientid)
+              ARM_CLIENT_SECRET: $(clientsecret)
+              ARM_SUBSCRIPTION_ID: $(subscriptionid)
+              ARM_TENANT_ID: $(tenantid)
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              environmentServiceNameAzureRM: 'skillstorm'
+              commandOptions: '-var-file=variables.tfvars -auto-approve'
+
+
+
+
+
+
